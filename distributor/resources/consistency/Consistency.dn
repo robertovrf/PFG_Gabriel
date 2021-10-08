@@ -1,0 +1,3 @@
+interface Consistency {
+  void handleRequest(Object request, TCPSocket client)
+}

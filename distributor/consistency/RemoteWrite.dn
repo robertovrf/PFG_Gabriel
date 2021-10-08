@@ -1,0 +1,69 @@
+data HTTPVerb {
+	char GET[] = "GET"
+	char POST[] = "POST"
+}
+
+component provides Consistency requires data.json.JSONEncoder parser, net.TCPSocket
+{
+
+  IPAddr primaryIp = null
+  IPAddr replicasIps[] = null
+  TCPServerSocket host = null
+  int port = 0
+  bool isPrimary = false
+	Mutex blockingWrite = new Mutex()
+
+  void setupIPs() {
+    if (primaryIp == null) {
+      primaryIp = new IPAddr()
+      primaryIp.ip = new char[](LOCALHOST)
+      primaryIp.port = 8081
+    }
+    if (remoteDistsIps == null) {
+      remoteDistsIps = new IPAddr[1]
+      remoteDistsIps[0] = new IPAddr()
+      remoteDistsIps[0].ip = new char[](LOCALHOST)
+      remoteDistsIps[0].port = 8082
+    }
+  }
+
+	void sendToPrimary(Object request) {
+		TCPSocket primarySock = new TCPSocket()
+		char requestStr[] = parser.jsonFromData(request, null)
+		// TODO: if connection to primary fail, do something
+		if (primarySock.connect(primaryIp.address, primaryIp.port)) {
+			primarySock.send(requestStr)
+			primarySock.disconnect()
+		}
+	}
+
+	bool isRequestFromPrimary(NetworkEndpoint clientAddr) {
+		return (
+			primaryIp.address == clientAddr.address &&
+			primaryIp.port ==  clientAddr.port
+		)
+	}
+
+	bool isRead(char[] method) {
+		return method == HTTPVerb.GET
+	}
+
+  void Consistency:handleRequest(Object request, TCPSocket client) {
+		char method[] = request.httpVerb
+    if (!this.isRead(method)) {
+			if(this.isPrimary) {
+				mutex(this.blockingWrite) {
+					// asynch::this.propagate()
+					// writeAndReturnToClient()
+				}
+
+			} else if (this.isRequestFromPrimary(client.getRemoteEndpoint())) {
+				// write
+
+			} else {
+				// TODO: refactor request structure at ListCP and DistProxy
+				this.sendToPrimary(request)
+			}
+		}
+	}
+}

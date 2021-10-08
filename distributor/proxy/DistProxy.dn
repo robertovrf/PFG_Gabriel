@@ -2,7 +2,13 @@ data Param {
 	char value[]
 }
 
+data HTTPVerb {
+	char GET[] = "GET"
+	char POST[] = "POST"
+}
+
 data Request {
+	HTTPVerb httpVerb
 	char functionName[]
 	int numParams
 	Param params[]
@@ -25,8 +31,9 @@ const char GET_LENGTH[]   = "getLength"
 const char GET_CONTENTS[] = "getContents"
 
 component provides proxy.DistProxy requires io.Output out, data.IntUtil iu, net.TCPSocket,
-	net.TCPServerSocket, data.adt.List list, data.json.JSONEncoder parser, data.StringUtil strUtil  {
-
+	net.TCPServerSocket, data.adt.List list, data.json.JSONEncoder parser, data.StringUtil strUtil
+	consistency.Consistency cst
+{
 	bool serviceStatus
 	TCPServerSocket host
 
@@ -95,6 +102,7 @@ component provides proxy.DistProxy requires io.Output out, data.IntUtil iu, net.
 		String helper[] = strUtil.explode(content, "!")
 		Request request = parser.jsonToData(helper[0].string, typeof(Request), null)
 		Request newRequest = new Request()
+		newRequest.httpVerb = request.httpVerb
 		newRequest.numParams = request.numParams
 		newRequest.functionName = request.functionName
 		for (int i = 0; i < newRequest.numParams; i++) {
@@ -105,12 +113,12 @@ component provides proxy.DistProxy requires io.Output out, data.IntUtil iu, net.
 		return newRequest
 	}
 
-	Request readRequest(TCPSocket s) {
+	Request readRequest(TCPSocket client) {
 		Request request = null
 		char buf[] = null
 		int len = 0
 		char command[] = null
-		while ((buf = s.recv(1)).arrayLength > 0) {
+		while ((buf = client.recv(1)).arrayLength > 0) {
 			command = new char[](command, buf)
 			len++
 			//stop condition
@@ -123,35 +131,34 @@ component provides proxy.DistProxy requires io.Output out, data.IntUtil iu, net.
 				}
 			}
 		}
-		if (request == null) { s.disconnect() }
+		if (request == null) { client.disconnect() }
 		return request
 	}
 
-	void processRequest(TCPSocket s) {
+	void processRequest(TCPSocket client) {
 		Response response = new Response()
-		Request request = readRequest(s)
-		char content[]
+		Request request = readRequest(client)
 		if (request == null) {
 			response.status = 2
 			response.value = null
+			char content[] = new char[](parser.jsonFromData(response,null), "\r\r\r\r")
+			client.send(content)
+			client.disconnect()
 		} else {
-			response = interpretRequest(request)
+			cst.handleRequest(request, client)
 		}
-		if (response.status == 3) {
+		/* if (response.status == 3) {
 			response.status = 2
 			char value[] = response.value
 			response.value = ""
 			content = new char[](parser.jsonFromData(response,null), "!", value, "\r\r\r\r")
-		} else {
-			content = new char[](parser.jsonFromData(response,null), "\r\r\r\r")
-		}
-		s.send(content)
-		s.disconnect()
+		} */
 	}
 
 	void DistProxy:start(int port) {
 		out.println("STARTED")
 		serviceStatus = true
+		cst.setupIPs()
 		host = new TCPServerSocket()
 		if (!host.bind(TCPServerSocket.ANY_ADDRESS, port)) {
 			out.println("Error: failed to bind master socket")

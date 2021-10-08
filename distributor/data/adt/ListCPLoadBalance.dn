@@ -2,7 +2,13 @@ data Param {
 	char value[]
 }
 
+data HTTPVerb {
+	char GET[] = "GET"
+	char POST[] = "POST"
+}
+
 data Request {
+	HTTPVerb httpVerb
 	char functionName[]
 	int numParams
 	Param params[]
@@ -13,11 +19,6 @@ data Response {
 	byte status
 	// if it's null or "" this has to be translated to null
 	char value[]
-}
-
-data IPAddr {
-	char ip[]
-	int port
 }
 
 data Int {
@@ -36,31 +37,31 @@ const char LOCALHOST[] = "localhost"
 component provides List(Destructor, AdaptEvents) requires data.json.JSONEncoder parser,
 	net.TCPSocket, net.TCPServerSocket, data.StringUtil strUtil, io.Output out, data.IntUtil iu {
 
-	IPAddr remoteDistsIps[] = null
-	IPAddr remoteListsIps[] = null
+	NetworkEndpoint remoteDistsIps[] = null
+	NetworkEndpoint remoteListsIps[] = null
 	Mutex remoteListsIpsLock = new Mutex()
 	int pointer = 0
 
 	void setupRemoteDistsIPs() {
 		if (remoteDistsIps == null) {
-			remoteDistsIps = new IPAddr[2]
-			remoteDistsIps[0] = new IPAddr()
-			remoteDistsIps[0].ip = new char[](LOCALHOST)
+			remoteDistsIps = new NetworkEndpoint[2]
+			remoteDistsIps[0] = new NetworkEndpoint()
+			remoteDistsIps[0].address = new char[](LOCALHOST)
 			remoteDistsIps[0].port = 8081
-			remoteDistsIps[1] = new IPAddr()
-			remoteDistsIps[1].ip = new char[](LOCALHOST)
+			remoteDistsIps[1] = new NetworkEndpoint()
+			remoteDistsIps[1].address = new char[](LOCALHOST)
 			remoteDistsIps[1].port = 8082
 		}
 	}
 
 	void setupRemoteListsIPs() {
 		if (remoteListsIps == null) {
-			remoteListsIps = new IPAddr[2]
-			remoteListsIps[0] = new IPAddr()
-			remoteListsIps[0].ip = new char[](LOCALHOST)
+			remoteListsIps = new NetworkEndpoint[2]
+			remoteListsIps[0] = new NetworkEndpoint()
+			remoteListsIps[0].address = new char[](LOCALHOST)
 			remoteListsIps[0].port = 2010
-			remoteListsIps[1] = new IPAddr()
-			remoteListsIps[1].ip = new char[](LOCALHOST)
+			remoteListsIps[1] = new NetworkEndpoint()
+			remoteListsIps[1].address = new char[](LOCALHOST)
 			remoteListsIps[1].port = 2011
 		}
 	}
@@ -109,15 +110,15 @@ component provides List(Destructor, AdaptEvents) requires data.json.JSONEncoder 
 		return response
 	}
 
-	bool establishConnection(IPAddr addr, TCPSocket remoteObj) {
-		if (!remoteObj.connect(addr.ip, addr.port)) {
+	bool establishConnection(NetworkEndpoint addr, TCPSocket remoteObj) {
+		if (!remoteObj.connect(addr.address, addr.port)) {
 			out.println("Connection error!")
 			return false
 		}
 		return true
 	}
 
-	Response connectAndSend(IPAddr addr, char content[], bool readResponse) {
+	Response connectAndSend(NetworkEndpoint addr, char content[], bool readResponse) {
 		TCPSocket remoteObj = new TCPSocket()
 		Response resp = null
 		if (establishConnection(addr, remoteObj)) {
@@ -130,7 +131,7 @@ component provides List(Destructor, AdaptEvents) requires data.json.JSONEncoder 
 
 	Response makeRequest(char content[]) {
 		setupRemoteListsIPs()
-		IPAddr addr = null
+		NetworkEndpoint addr = null
 		mutex(remoteListsIpsLock) {
 			if (remoteListsIps.arrayLength > 1) {
 				if (pointer == remoteListsIps.arrayLength) { pointer = 0 }
@@ -143,6 +144,7 @@ component provides List(Destructor, AdaptEvents) requires data.json.JSONEncoder 
 
 	void List:add(Data item) {
 		Request request = new Request()
+		requet.httpVerb = HTTPVerb.POST
 		request.functionName = ADD
 		request.numParams = 1
 		char requestStr[] = parser.jsonFromData(request, null)
@@ -185,6 +187,7 @@ component provides List(Destructor, AdaptEvents) requires data.json.JSONEncoder 
 
 	int List:getLength() {
 		Request request = new Request()
+		requet.httpVerb = HTTPVerb.GET
 		request.functionName = GET_LENGTH
 		request.numParams = 0
 		char requestStr[] = parser.jsonFromData(request, null)
@@ -195,6 +198,7 @@ component provides List(Destructor, AdaptEvents) requires data.json.JSONEncoder 
 
 	Data[] List:getContents(opt Type t) {
 		Request request = new Request()
+		requet.httpVerb = HTTPVerb.GET
 		request.functionName = GET_CONTENTS
 		request.numParams = 0
 		char requestStr[] = parser.jsonFromData(request, null)
