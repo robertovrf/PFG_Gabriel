@@ -1,0 +1,166 @@
+data Node {
+  int key
+}
+
+component provides List:heap(Destructor, AdaptEvents) requires io.Output out, data.IntUtil iu {
+
+  Node heap[] = null
+  int length = 0
+  Mutex heapLock = new Mutex()
+
+  /*
+   * Add item to heap.
+   *
+   * Note that the max-heap property is violated
+   * on inserts. That means no processing time
+   * on write operations.
+   */
+	void List:add(Data item) {   
+    mutex(heapLock) {
+      if (length == 0) {
+        heap = new Node[]()
+      }
+      Node node = item
+      heap = new Node[](heap, node)
+      length++
+
+      char result[] = new char[]("[")
+      for (int i = 0; i < length; i++) {
+        result = new char[](result, " ", iu.intToString(heap[i].key))
+      }
+      result = new char[](result, " ]")
+      out.println("$(result)")
+    }
+	}
+
+  /*
+   * Remove a node from heap.
+   */
+	void List:remove(Data item) {
+		mutex(heapLock) {
+      Node itemToRemove = item
+      for (int i = 0; i < length; i++) {
+        if (heap[i] == itemToRemove) {
+          int j = i
+          while (j < length - 1) {
+            heap[j] = heap[j+1]
+            j++
+          }
+          break
+        }
+      }
+      length--
+    }
+	}
+
+	void List:update(Data item, Data newVersion) {
+		// TODO
+	}
+
+  /*
+   * Return the first node.
+   */
+	Data List:getFirst() {
+    mutex(heapLock) {
+      Data item = heap[0]
+      return item
+    }
+	}
+
+	Data List:getNext() {
+		// TODO
+		return null
+	}
+
+	bool List:isEnd() {
+		// TODO
+		return false
+	}
+
+	Data List:getIndex(int ndx) {
+		// TODO
+		return null
+	}
+
+	void List:setIndex(int ndx, Data d) {
+		//TODO
+	}
+
+  /*
+   * Return the heap length.
+   */
+	int List:getLength() {
+    mutex(heapLock) {
+			return length
+		}
+	}
+
+  /*
+   * Return the heap contents.
+   *
+   * Just return the content (no processing time).
+   */
+	Data[] List:getContents(opt Type t) {
+		mutex(heapLock) {
+      if (heap == null) { 
+        return new Data[] 
+      }
+
+      Data items[]
+      if (isset t) {
+        items = new Data[length] from t
+      } else {
+        items = new Data[length]
+      }
+
+      for (int i = 0; i < length; i++) {
+        items[i] = heap[i]
+      }
+
+      return items
+    }
+	}
+
+  /*
+   * Create the heap from an array.
+   *
+   * Note that the collection is not created with
+   * the max-heap property.
+   */
+  void createHeap(Data items[]) {
+    mutex(heapLock) {
+  		clearList()
+  		for (int i = 0; i < items.arrayLength; i++) {
+  			add(items[i])
+			}
+    }
+	}
+
+  /*
+   * Clone contents from other object into the heap.
+   */
+	bool List:clone(Object o) {
+    List src = o
+		Data items[] = src.getContents()
+    createHeap(items)
+
+		return true
+	}
+
+	void clearList() {
+    heap = null
+    length = 0
+	}
+
+  void Destructor:destroy() {
+    clearList()
+  }
+
+  void AdaptEvents:inactive() {
+    content = heap
+  }
+
+  void AdaptEvents:active() {
+    createHeap(content)
+  }
+}

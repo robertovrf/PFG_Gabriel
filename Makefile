@@ -3,9 +3,9 @@ DNC=dnc . -v
 DN=dana
 
 .DEFAULT_GOAL: all
-.PHONY: all server client distributor readn writen readn-writen
+.PHONY: all server client distributor constant readn writen readn-writen
 
-all: server client distributor readn writen readn-writen
+all: server client distributor constant readn writen readn-writen
 
 server:
 	@echo ">> Compiling server..."
@@ -21,6 +21,11 @@ distributor:
 	@echo ">> Compiling distributor..."
 	@cd distributor/ && $(DNC)
 	@echo "Distributor compiled!"
+
+constant:
+	@echo ">> Compiling constant..."
+	@cd constant/ && $(DNC)
+	@echo "Constant compiled!"	
 
 readn:
 	@echo ">> Compiling readn..."
