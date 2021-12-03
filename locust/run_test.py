@@ -2,11 +2,11 @@ import sys
 import os
 
 # Number of users to spawn at peak concurrency
-NUMBER_OF_USERS = 100
+NUMBER_OF_USERS = 20
 # Number of users to start per second
-SPAWN_RATE = 10
+SPAWN_RATE = 2
 # Run time for the test (Locust will shutdown once the time is up)
-RUN_TIME = "180s"
+RUN_TIME = "210s"
 # Time to wait, in seconds, to tasks to finish their iteration
 STOP_TIMEOUT = 10
 

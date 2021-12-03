@@ -32,6 +32,8 @@ const char CLEAR_LIST[]   = "clearList"
 
 /* IPs */
 const char LOCALHOST[] = "localhost"
+const char ATLAS[]     = "atlas"
+const char ECO[]       = "eco"
 
 component provides List:heap(Destructor, AdaptEvents) requires data.json.JSONEncoder parser,
 	net.TCPSocket, net.TCPServerSocket, data.StringUtil strUtil, io.Output out, data.IntUtil iu {
@@ -45,10 +47,10 @@ component provides List:heap(Destructor, AdaptEvents) requires data.json.JSONEnc
 		if (remoteDistsIps == null) {
 			remoteDistsIps = new IPAddr[2]
 			remoteDistsIps[0] = new IPAddr()
-			remoteDistsIps[0].ip = new char[](LOCALHOST)
+			remoteDistsIps[0].ip = new char[](ATLAS)
 			remoteDistsIps[0].port = 8081
 			remoteDistsIps[1] = new IPAddr()
-			remoteDistsIps[1].ip = new char[](LOCALHOST)
+			remoteDistsIps[1].ip = new char[](ECO)
 			remoteDistsIps[1].port = 8082
 		}
 	}
@@ -57,10 +59,10 @@ component provides List:heap(Destructor, AdaptEvents) requires data.json.JSONEnc
 		if (remoteListsIps == null) {
 			remoteListsIps = new IPAddr[2]
 			remoteListsIps[0] = new IPAddr()
-			remoteListsIps[0].ip = new char[](LOCALHOST)
+			remoteListsIps[0].ip = new char[](ATLAS)
 			remoteListsIps[0].port = 2010
 			remoteListsIps[1] = new IPAddr()
-			remoteListsIps[1].ip = new char[](LOCALHOST)
+			remoteListsIps[1].ip = new char[](ECO)
 			remoteListsIps[1].port = 2011
 		}
 	}

@@ -3,7 +3,7 @@ from locust.user.wait_time import constant_throughput
 from random import randint
 
 TASKS_RUN_PER_SECOND = 0.1
-LOCALHOST = "http://localhost:8080"
+LOCALHOST = "http://satiros:8080"
 
 
 class Client_90_10(HttpUser):

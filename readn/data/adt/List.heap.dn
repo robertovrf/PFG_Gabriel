@@ -24,12 +24,12 @@ component provides List:heap(Destructor, AdaptEvents) requires io.Output out, da
       heap = new Node[](heap, node)
       length++
 
-      char result[] = new char[]("[")
-      for (int i = 0; i < length; i++) {
-        result = new char[](result, " ", iu.intToString(heap[i].key))
-      }
-      result = new char[](result, " ]")
-      out.println("$(result)")
+      // char result[] = new char[]("[")
+      // for (int i = 0; i < length; i++) {
+      //   result = new char[](result, " ", iu.intToString(heap[i].key))
+      // }
+      // result = new char[](result, " ]")
+      // out.println("$(result)")
     }
 	}
 

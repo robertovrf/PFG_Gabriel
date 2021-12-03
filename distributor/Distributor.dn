@@ -7,8 +7,16 @@ const char SHARDING[]  = "sharding"
 const char LOCAL[]     = "local"
 const char EXIT[]      = "exit"
 
+/* Test commands */
+const char LOCAL_TO_SHARD[]     = "local_to_shard"
+const char LOCAL_TO_PROPAGATE[] = "local_to_propagate"
+const char SHARD_TO_LOCAL[]     = "shard_to_local"
+const char PROPAGATE_TO_LOCAL[] = "propagate_to_local"
+const char SHARD_TO_PROPAGATE[] = "shard_to_propagate"
+const char PROPAGATE_TO_SHARD[] = "propagate_to_shard"
+
 component provides App requires io.Output out, data.StringUtil strUtil, data.IntUtil iu, io.Input in, 
-	composition.Assembly assembly {
+	composition.Assembly assembly, time.Timer t {
 
 	String remoteConfigs[] 		= null
 	String localConfigs[] 		= null
@@ -52,6 +60,44 @@ component provides App requires io.Output out, data.StringUtil strUtil, data.Int
 				distribute("ListCPSharding.o")
 			} else if (cmd == LOCAL) {
 				local()
+				
+			// test scenarios
+			} else if (cmd == LOCAL_TO_SHARD) {
+				local()
+				t.sleep(90000)
+				distribute("ListCPSharding.o")
+				t.sleep(120000)
+
+			} else if (cmd == LOCAL_TO_PROPAGATE) {
+				local()
+				t.sleep(90000)
+				distribute("ListCPPropagate.o")
+				t.sleep(120000)	
+
+			} else if (cmd == SHARD_TO_LOCAL) {
+				distribute("ListCPSharding.o")
+				t.sleep(90000)
+				local()
+				t.sleep(120000)
+
+			} else if (cmd == PROPAGATE_TO_LOCAL) {
+				distribute("ListCPPropagate.o")
+				t.sleep(90000)
+				local()
+				t.sleep(120000)
+
+			} else if (cmd == SHARD_TO_PROPAGATE) {
+				distribute("ListCPSharding.o")
+				t.sleep(90000)
+				distribute("ListCPPropagate.o")
+				t.sleep(120000)	
+
+			} else if (cmd == PROPAGATE_TO_SHARD) {
+				distribute("ListCPPropagate.o")
+				t.sleep(90000)
+				distribute("ListCPSharding.o")
+				t.sleep(120000)
+						
 			} else {
 				out.println("Invalid command.")
 			}

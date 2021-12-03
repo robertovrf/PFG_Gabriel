@@ -1,7 +1,7 @@
 component provides App requires io.Output out, net.http.HTTPRequest http,
 	data.IntUtil iu, data.StringUtil su
 {
-	char baseUrl[] = "http://localhost:8080/"
+	char baseUrl[] = "http://satiros:8080/"
 	char addOp[] = "add"
 	char getOp[] = "get"
 
